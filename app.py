@@ -196,7 +196,7 @@ elif st.session_state.step == 4:
 
 # STAGE 5: GOAL TRAJECTORY
 elif st.session_state.step == 5:
-    st.header("Step 5: Wealth Engine & Goal Trajectory")
+    s("Step 5: Wealth Engine & Goal Trajectory")
     st.markdown("Model specific capital milestones against your active monthly Guilt-Free Margin.")
     
     col1, col2 = st.columns(2)
@@ -232,7 +232,7 @@ elif st.session_state.step == 6:
     st.markdown("Based on systemic mathematical triage, execute your **single immediate priority** before deploying capital elsewhere.")
     
     # Process Liabilities
-    has_toxialse
+    has_toxic_debt = False
     toxic_df = pd.DataFrame()
     if not st.session_state.debt_df.empty:
         st.session_state.debt_df['APR (%)'] = pd.to_numeric(st.session_state.debt_df['APR (%)'], errors='coerce').fillna(0)
