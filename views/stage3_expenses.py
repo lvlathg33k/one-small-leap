@@ -1,15 +1,29 @@
 import streamlit as st
 
 def render(next_step, prev_step, margin):
-    # Full-screen takeover when in a deficit
-    if st.session_state.base_committed is not None and margin <= 0:
-        committed_val = st.session_state.base_committed
-        take_home_val = st.session_state.take_home or 0.0
-        deficit_val = abs(margin)
+    st.header("Step 3: Baseline Expenses")
+    st.caption("What absolutely must leave your account every month to keep the lights on? **DO NOT include large, multi-month expenses here** (like annual car registration or Christmas). We will factor those in later. Only include strict monthly minimums (rent, groceries, utilities, minimum debt payments).")
+    
+    val = st.number_input(
+        "Monthly Baseline Committed Bills ($)", 
+        min_value=0.0, 
+        step=100.0, 
+        value=st.session_state.base_committed if st.session_state.base_committed is not None else 0.0
+    )
+    
+    # Update state immediately from the current widget value
+    st.session_state.base_committed = val
+    take_home_val = st.session_state.take_home or 0.0
+    current_margin = take_home_val - val
 
+    st.divider()
+
+    # DEFICIT HARD-STOP: Triggered whenever committed >= take_home and committed > 0
+    if val > 0 and current_margin <= 0:
+        deficit_val = abs(current_margin)
         st.error("🚨 **CRITICAL DEFICIT: PAUSE AND EXECUTE IN REAL LIFE**")
         st.markdown(
-            f"Your committed monthly bills (**\\${committed_val:,.2f}**) exceed your take-home pay (**\\${take_home_val:,.2f}**) "
+            f"Your committed monthly bills (**\\${val:,.2f}**) exceed your take-home pay (**\\${take_home_val:,.2f}**) "
             f"by **\\${deficit_val:,.2f}** every single month.\n\n"
             "**Do not rush past this screen.** You cannot mathematically build wealth or eliminate debt while cash flow is negative. "
             "Fixing this gap is not an in-app toggle—it requires real-world time, discipline, and execution."
@@ -50,22 +64,11 @@ def render(next_step, prev_step, margin):
         st.button("🔄 I Have Executed Changes in Real Life (Update Numbers)", on_click=reset_to_step_1, type="primary")
 
     else:
-        # Standard input screen
-        st.header("Step 3: Baseline Expenses")
-        st.caption("What absolutely must leave your account every month to keep the lights on? **DO NOT include large, multi-month expenses here** (like annual car registration or Christmas). We will factor those in later. Only include strict monthly minimums (rent, groceries, utilities, minimum debt payments).")
-        
-        st.session_state.base_committed = st.number_input(
-            "Monthly Baseline Committed Bills ($)", 
-            min_value=0.0, 
-            step=100.0, 
-            value=st.session_state.base_committed
-        )
-        
-        st.divider()
+        # Standard navigation buttons when margin is positive
         c1, c2 = st.columns([1, 5])
         c1.button("Back", on_click=prev_step)
         
-        if st.session_state.base_committed is not None and st.session_state.base_committed > 0:
+        if val > 0:
             c2.button("Next", on_click=next_step, type="primary")
         else:
             c2.button("Enter your expenses to continue", disabled=True)
