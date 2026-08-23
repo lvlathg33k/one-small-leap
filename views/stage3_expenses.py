@@ -18,6 +18,7 @@ def render(next_step, prev_step, margin):
     if st.session_state.base_committed is not None:
         if margin <= 0:
             st.error("🚨 **Your One Next Step: Stop the Bleeding**\n\nYour basic bills exceed or equal your income. You are mathematically underwater.\n\n**Action Required:** Leave this app right now. Cancel subscriptions, negotiate bills, or take on extra income. You cannot proceed until you change the 'Committed Bills' input above to generate a positive margin.")
+            c2.button("Fix deficit to continue", disabled=True)
         else:
             c2.button("Next", on_click=next_step, type="primary")
     else:
