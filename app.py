@@ -16,7 +16,6 @@ if 'employer_match' not in st.session_state: st.session_state.employer_match = "
 if 'savings' not in st.session_state: st.session_state.savings = None
 if 'debt_df' not in st.session_state: 
     st.session_state.debt_df = pd.DataFrame(columns=["Debt Name", "Balance ($)", "APR (%)", "Min Payment ($)"])
-if 'debt_confirm' not in st.session_state: st.session_state.debt_confirm = "Select..."
 if 'sinking_df' not in st.session_state: 
     st.session_state.sinking_df = pd.DataFrame(columns=["Expense Name", "Total Cost ($)", "Frequency", "Months Until Due"])
 if 'has_dependents' not in st.session_state: st.session_state.has_dependents = "No"
@@ -26,16 +25,18 @@ if 'goal_name' not in st.session_state: st.session_state.goal_name = ""
 if 'goal_target' not in st.session_state: st.session_state.goal_target = None
 if 'debt_strategy' not in st.session_state: st.session_state.debt_strategy = "Combine & Conquer"
 
+# Checkbox trackers
+if 'cc_check' not in st.session_state: st.session_state.cc_check = False
+if 'auto_check' not in st.session_state: st.session_state.auto_check = False
+if 'student_check' not in st.session_state: st.session_state.student_check = False
+if 'mortgage_check' not in st.session_state: st.session_state.mortgage_check = False
+if 'payday_check' not in st.session_state: st.session_state.payday_check = False
+
 def next_step(): st.session_state.step += 1
 def prev_step(): st.session_state.step -= 1
 def reset(): 
-    st.session_state.step = 0
-    st.session_state.take_home = None
-    st.session_state.committed = None
-    st.session_state.savings = None
-    st.session_state.debt_confirm = "Select..."
-    st.session_state.goal_name = ""
-    st.session_state.goal_target = None
+    for key in st.session_state.keys():
+        del st.session_state[key]
 
 # ==========================================
 # SIDEBAR: PERSISTENT COMMAND SNAPSHOT
@@ -113,18 +114,28 @@ elif st.session_state.step == 2:
         hide_index=True
     )
     
-    st.markdown("### ")
-    st.session_state.debt_confirm = st.radio("Debt Attestation:", 
-                                             ["Select...", "I have zero active debt.", "I confirm this ledger contains ALL my active debts."])
+    st.divider()
+    st.subheader("Debt Discovery Checklist")
+    st.caption("To ensure the math is accurate, verify you have accounted for all potential liabilities. Check each box to confirm you have either listed the balance above, or verified you carry a zero balance for that category.")
+
+    st.session_state.cc_check = st.checkbox("Credit Cards (Chase, Amex, Capital One, Store/Retail cards, etc.)", value=st.session_state.cc_check)
+    st.session_state.auto_check = st.checkbox("Auto Loans, Leases, or Recreational Vehicle notes", value=st.session_state.auto_check)
+    st.session_state.student_check = st.checkbox("Student Loans (Federal or Private)", value=st.session_state.student_check)
+    st.session_state.mortgage_check = st.checkbox("Mortgages, HELOCs, or other real estate loans", value=st.session_state.mortgage_check)
+    st.session_state.payday_check = st.checkbox("Payday Loans, Personal Loans, or 'Buy Now, Pay Later' (e.g., Klarna, Affirm, Speedy Cash)", value=st.session_state.payday_check)
+
+    all_checked = (st.session_state.cc_check and st.session_state.auto_check and 
+                   st.session_state.student_check and st.session_state.mortgage_check and 
+                   st.session_state.payday_check)
 
     st.divider()
     c1, c2 = st.columns([1, 5])
     c1.button("Back", on_click=prev_step)
     
-    if st.session_state.savings is not None and st.session_state.debt_confirm != "Select...":
+    if st.session_state.savings is not None and all_checked:
         c2.button("Next: Sinking Funds", on_click=next_step, type="primary")
     else:
-        c2.button("Complete reserves and debt attestation to continue", disabled=True)
+        c2.button("Complete reserves and the Debt Discovery Checklist to continue", disabled=True)
 
 # STAGE 3: SINKING FUNDS
 elif st.session_state.step == 3:
