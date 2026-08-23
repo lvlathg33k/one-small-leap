@@ -46,11 +46,13 @@ margin = th_val - com_val
 
 with st.sidebar:
     st.header("Your Snapshot")
-    st.metric("Total Take-Home", f"${th_val:,.2f}")
-    st.metric("Committed Money", f"${com_val:,.2f}")
-    st.metric("Guilt-Free Margin", f"${margin:,.2f}", 
-              delta=f"${margin:,.2f}" if margin > 0 else f"-${abs(margin):,.2f}", 
-              delta_color="normal" if margin > 0 else "inverse")
+    
+    st.markdown(f"**Total Take-Home**<br><span style='color: #4da6ff; font-size: 24px; font-weight: bold;'>\${th_val:,.2f}</span>", unsafe_allow_html=True)
+    st.markdown(f"**Committed Money**<br><span style='color: #cc0000; font-size: 24px; font-weight: bold;'>\${com_val:,.2f}</span>", unsafe_allow_html=True)
+    
+    margin_color = "#00cc44" if margin > 0 else "#ff3333"
+    margin_label = "Guilt-Free Margin" if margin > 0 else "Liquidity Deficit"
+    st.markdown(f"**{margin_label}**<br><span style='color: {margin_color}; font-size: 24px; font-weight: bold;'>\${margin:,.2f}</span>", unsafe_allow_html=True)
     
     st.divider()
     total_steps = 6
@@ -64,24 +66,18 @@ with st.sidebar:
 # STAGE 0: SETUP
 if st.session_state.step == 0:
     st.title("One Small Leap")
-    st.markdown("""
-    Most financial platforms shame you for small daily expenses without providing a structured system. 
-    
-    This application audits your baseline, sequences debt and reserves through mathematical prioritization, protects your dependents, and outputs your **single next operational action**.
-    """)
-    st.session_state.household = st.radio("Household Architecture:", ["Single", "Married (Joint Finances)"])
-    st.button("Begin Audit", on_click=next_step, type="primary")
+    st.caption("Most financial platforms shame you for small daily expenses without providing a structured system. This application audits your baseline, mathematically prioritizes your debt and reserves, and outputs your single next operational action.")
+    st.session_state.household = st.radio("Household Setup:", ["Single", "Married (Joint Finances)"])
+    st.button("Begin", on_click=next_step, type="primary")
 
 # STAGE 1: CASH FLOW
 elif st.session_state.step == 1:
-    st.header("Step 1: Cash Flow Baseline")
-    st.markdown("Quantify total net liquidity entering and strictly committed to leave each month.")
+    st.header("Step 1: Enter your income and minimum bills.")
+    st.caption("This establishes your baseline. We need to know exactly how much cash hits your bank account, and what absolutely must leave to keep the lights on. Do not include extra debt payments or savings here, just the bare minimums.")
     
     col1, col2 = st.columns(2)
     with col1:
-        st.info("💡 **Money In:** Find 'Net Pay' on your most recent paystub (take-home cash post-tax). Scale to a monthly figure.")
         st.session_state.take_home = st.number_input("Monthly Net Take-Home Pay ($)", min_value=0.0, step=100.0, value=st.session_state.take_home, placeholder="e.g. 5000")
-        
         st.markdown("### ")
         st.session_state.employer_match = st.radio(
             "Does your employer offer a 401(k) / retirement match you are NOT currently capturing?", 
@@ -89,7 +85,6 @@ elif st.session_state.step == 1:
         )
 
     with col2:
-        st.info("💡 **Money Out:** Sum all non-negotiable monthly obligations (rent/mortgage, utilities, essential groceries, minimum debt payments).")
         st.session_state.committed = st.number_input("Monthly Baseline Committed Bills ($)", min_value=0.0, step=100.0, value=st.session_state.committed, placeholder="e.g. 3500")
     
     st.divider()
@@ -99,25 +94,28 @@ elif st.session_state.step == 1:
     if st.session_state.take_home is not None and st.session_state.committed is not None:
         c2.button("Next: Assets & Debts", on_click=next_step, type="primary")
     else:
-        c2.button("Complete cash flow inputs to continue", disabled=True)
+        c2.button("Fill in your numbers to continue", disabled=True)
 
 # STAGE 2: ASSETS & LIABILITIES
 elif st.session_state.step == 2:
-    st.header("Step 2: Assets & Liabilities")
+    st.header("Step 2: Count your cash and list your debts.")
+    st.caption("If you lost your job today, you need cash to survive. We check your cash against a 3-month survival target. Then, we analyze your debts to build a mathematically optimal payoff plan.")
     
-    st.subheader("Core Reserves")
-    st.markdown(f"Your calculated monthly operating baseline is **${st.session_state.committed:,.2f}**. A standard 3-month liquidity target requires **${(st.session_state.committed * 3):,.2f}**.")
-    st.session_state.savings = st.number_input("Current Liquid Cash (Checking + Savings Accounts) ($)", min_value=0.0, step=500.0, value=st.session_state.savings, placeholder="e.g. 10000")
+    st.session_state.savings = st.number_input("Total Cash in Bank (Checking + Savings) ($)", min_value=0.0, step=500.0, value=st.session_state.savings, placeholder="e.g. 10000")
 
     st.divider()
-    st.subheader("Debt Ledger")
-    st.markdown("Enter all active liabilities. The triage engine automatically segments toxic interest rates (>= 7% APR).")
+    st.subheader("The Debt Ledger")
     
-    st.session_state.debt_df = st.data_editor(st.session_state.debt_df, num_rows="dynamic", use_container_width=True)
+    st.session_state.debt_df = st.data_editor(
+        st.session_state.debt_df, 
+        num_rows="dynamic", 
+        use_container_width=True,
+        hide_index=True
+    )
     
     st.markdown("### ")
     st.session_state.debt_confirm = st.radio("Debt Attestation:", 
-                                             ["Select...", "I have zero active debt.", "I confirm this ledger contains ALL active liabilities."])
+                                             ["Select...", "I have zero active debt.", "I confirm this ledger contains ALL my active debts."])
 
     st.divider()
     c1, c2 = st.columns([1, 5])
@@ -130,17 +128,14 @@ elif st.session_state.step == 2:
 
 # STAGE 3: SINKING FUNDS
 elif st.session_state.step == 3:
-    st.header("Step 3: Sinking Funds (Smoothing Spikes)")
-    st.markdown("""
-    Non-monthly predictable liabilities (annual insurance premiums, vehicle registration, holiday reserves) disrupt cash flow when treated as ad-hoc expenses. 
-    
-    Sinking funds amortize these obligations into fixed monthly reserve transfers to maintain baseline stability.
-    """)
+    st.header("Step 3: List your large, non-monthly bills.")
+    st.caption("Predictable yearly expenses (like car registration or holidays) cause people to go into debt. By listing them here, we will slice them into small, automated monthly transfers so you are never surprised.")
     
     st.session_state.sinking_df = st.data_editor(
         st.session_state.sinking_df, 
         num_rows="dynamic", 
         use_container_width=True,
+        hide_index=True,
         column_config={
             "Frequency": st.column_config.SelectboxColumn("Frequency", options=["Annually", "Semi-Annually", "Quarterly"]),
             "Months Until Due": st.column_config.NumberColumn("Months Until Due", min_value=1, max_value=12)
@@ -154,8 +149,8 @@ elif st.session_state.step == 3:
 
 # STAGE 4: THE MOAT (RISK MANAGEMENT)
 elif st.session_state.step == 4:
-    st.header("Step 4: The Moat (Pure Protection)")
-    st.markdown("Insurance is purely a tool for capital replacement, not wealth accumulation. Cash-value and whole life instruments are mathematically inefficient.")
+    st.header("Step 4: Protect your dependents.")
+    st.caption("If people rely on your income to survive, you need a protective moat. We only recommend pure Term Life insurance because it is cheap, effective, and mathematically superior to whole life policies.")
     
     st.session_state.has_dependents = st.radio(
         "Does anyone rely on your income to sustain their basic standard of living?", 
@@ -177,8 +172,7 @@ elif st.session_state.step == 4:
             
         if st.session_state.income_gap is not None and st.session_state.income_gap > 0:
             coverage = st.session_state.income_gap * 25
-            st.success(f"🛡️ **Moat Specification:** Secure a **{st.session_state.term_years}-year level Term Life policy** for **${coverage:,.2f}**.")
-            st.caption("Calculation based on a 4% capitalization rate (25x annual replacement requirement).")
+            st.success(f"🛡️ **Moat Specification:** Secure a **{st.session_state.term_years}-year level Term Life policy** for **\${coverage:,.2f}**.")
     
     if "Married" in st.session_state.household:
         st.divider()
@@ -196,8 +190,8 @@ elif st.session_state.step == 4:
 
 # STAGE 5: GOAL TRAJECTORY
 elif st.session_state.step == 5:
-    s("Step 5: Wealth Engine & Goal Trajectory")
-    st.markdown("Model specific capital milestones against your active monthly Guilt-Free Margin.")
+    st.header("Step 5: Set a specific financial goal.")
+    st.caption("Money is a tool to buy back your freedom. Tell the system what you are saving for, and it will map out your exact timeline.")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -211,7 +205,7 @@ elif st.session_state.step == 5:
         rem_months = months_needed % 12
         time_str = f"{years} yr, {rem_months} mo" if years > 0 else f"{rem_months} months"
         
-        st.success(f"🎯 **Trajectory Locked:** Routing your **${margin:,.2f}** monthly margin achieves **${st.session_state.goal_target:,.2f}** for '{st.session_state.goal_name}' in **{time_str}**.")
+        st.success(f"🎯 **Trajectory Locked:** Routing your **\${margin:,.2f}** monthly margin achieves **\${st.session_state.goal_target:,.2f}** for '{st.session_state.goal_name}' in **{time_str}**.")
         
         timeline_data = [
             {"Month": f"M{m}", "Accumulated Capital ($)": min(m * margin, st.session_state.goal_target)} 
@@ -228,10 +222,9 @@ elif st.session_state.step == 5:
 
 # STAGE 6: THE PRIME DIRECTIVE (EXECUTION WATERFALL)
 elif st.session_state.step == 6:
-    st.header("Step 6: The Prime Directive")
-    st.markdown("Based on systemic mathematical triage, execute your **single immediate priority** before deploying capital elsewhere.")
+    st.header("Step 6: Your Action Plan")
+    st.caption("Do not look at step 2 until step 1 is done. Execute this single priority right now.")
     
-    # Process Liabilities
     has_toxic_debt = False
     toxic_df = pd.DataFrame()
     if not st.session_state.debt_df.empty:
@@ -244,47 +237,38 @@ elif st.session_state.step == 6:
     ef_target = (st.session_state.committed or 0.0) * 3
     current_savings = st.session_state.savings or 0.0
     
-    # 1. Negative Margin Check
+    # 1. Negative Margin
     if margin <= 0:
-        st.error("🚨 **PRIORITY 1: LIQUIDITY STRESS RECOVERY**")
-        st.markdown(f"Committed bills (${com_val:,.2f}) exceed or match take-home pay (${th_val:,.2f}). Immediate action: eliminate discretionary fixed costs or increase gross cash flow until net margin is positive.")
+        st.error("🚨 STOP THE BLEEDING")
+        st.markdown(f"Your bills (\${com_val:,.2f}) are higher than your income (\${th_val:,.2f}). You must cancel subscriptions, negotiate bills, or increase your income immediately until your margin is green.")
     
-    # 2. Employer Match Capture
+    # 2. Employer Match
     elif "leaving match money" in st.session_state.employer_match:
-        st.warning("⚠️ **PRIORITY 2: CAPTURE 100% EMPLOYER MATCH**")
-        st.markdown("Employer match represents an instantaneous, risk-free guaranteed return. Update your workplace retirement contribution percentage to the maximum matched ceiling immediately.")
+        st.warning("⚠️ CAPTURE FREE MONEY")
+        st.markdown("Your employer is offering a guaranteed return. Log into your HR portal today and increase your 401(k) contribution to the full match limit.")
     
-    # 3. Toxic Debt Avalanche
+    # 3. Toxic Debt
     elif has_toxic_debt:
         highest_rate = toxic_df.iloc[0]
-        st.error("🧨 **PRIORITY 3: AVALANCHE HIGH-INTEREST DEBT (>= 7% APR)**")
-        st.markdown(f"Deploy 100% of your **${margin:,.2f}** monthly margin to principal reduction on **{highest_rate['Debt Name']}** ({highest_rate['APR (%)']}% APR). Suspend additional investments and cash accumulation.")
-        st.dataframe(toxic_df[["Debt Name", "Balance ($)", "APR (%)"]], use_container_width=True)
+        st.error("🧨 DESTROY HIGH-INTEREST DEBT")
+        st.markdown(f"You are bleeding cash to high-interest debt. Route 100% of your **\${margin:,.2f}** margin directly to the principal of **{highest_rate['Debt Name']}** ({highest_rate['APR (%)']}% APR) until it is gone. Suspend all other saving.")
+        st.dataframe(toxic_df[["Debt Name", "Balance ($)", "APR (%)"]], use_container_width=True, hide_index=True)
         
-    # 4. Emergency Vault Calibration
+    # 4. Emergency Vault
     elif current_savings < ef_target:
-        deficit = ef_target - current_savings
-        st.warning("🛡️ **PRIORITY 4: CAPITALIZE CORE 3-MONTH RESERVE**")
-        st.markdown(f"Your target liquidity is **${ef_target:,.2f}** (Current: ${current_savings:,.2f}). Route your **${margin:,.2f}** monthly margin to a dedicated High-Yield Savings Account until the **${deficit:,.2f}** deficit is closed.")
+        st.warning("🛡️ BUILD THE FORTRESS")
+        st.markdown(f"Your debts are manageable, but your safety net is incomplete. Your target is **\${ef_target:,.2f}** and you have **\${current_savings:,.2f}**. Route 100% of your **\${margin:,.2f}** margin into a High-Yield Savings Account every month until you hit your target.")
         
-    # 5. Sinking Fund Activation
+    # 5. Sinking Funds
     elif not st.session_state.sinking_df.empty:
-        st.info("📅 **PRIORITY 5: AUTOMATE SINKING RESERVES**")
-        st.markdown("Baseline liquid security established. Establish automated recurring transfers for identified periodic liabilities to prevent baseline drawdowns.")
-        st.dataframe(st.session_state.sinking_df, use_container_width=True)
+        st.info("📅 AUTOMATE SINKING FUNDS")
+        st.markdown("Your safety net is full and toxic debt is gone. Log into your bank, open sub-folders (or a separate checking account), and set up automated monthly transfers for the bills listed below.")
+        st.dataframe(st.session_state.sinking_df, use_container_width=True, hide_index=True)
         
-    # 6. Unconstrained Factor Indexing
+    # 6. Wealth Generation
     else:
-        st.success("📈 **PRIORITY 6: LONG-TERM CAPITAL COMPOUNDING**")
-        st.markdown(f"Fortress baseline complete. Deploy your unallocated **${margin:,.2f}** monthly margin into low-cost, broad-market equity index funds (e.g., small-cap value factor tilts) across tax-advantaged accounts (Roth IRA / HSA / 401k) and taxable brokerage.")
-
-    st.divider()
-    st.subheader("System Governance & Failsafes")
-    col_g1, col_g2 = st.columns(2)
-    with col_g1:
-        st.error("🚫 **Prohibited Speculation:** Margin leverage, options contracts, market timing, and whole life insurance policies are disallowed by this protocol.")
-    with col_g2:
-        st.info("🏛️ **Fiduciary Threshold:** Upon maximizing all statutory tax-advantaged limits ($23.5k 401k, $7k IRA) and accumulating complex taxable estate requirements, hand off management to a fee-only Registered Investment Advisor (RIA).")
+        st.success("📈 COMPOUND YOUR WEALTH")
+        st.markdown(f"Fortress baseline complete. Deploy your unallocated **\${margin:,.2f}** monthly margin into low-cost, broad-market equity index funds (e.g., small-cap value factor tilts) to build long-term wealth.")
 
     st.divider()
     c1, c2 = st.columns([1, 5])
