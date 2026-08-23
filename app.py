@@ -31,9 +31,6 @@ if 'auto_check' not in st.session_state: st.session_state.auto_check = False
 if 'student_check' not in st.session_state: st.session_state.student_check = False
 if 'mortgage_check' not in st.session_state: st.session_state.mortgage_check = False
 if 'payday_check' not in st.session_state: st.session_state.payday_check = False
-if 'ack_match' not in st.session_state: st.session_state.ack_match = False
-if 'ack_toxic' not in st.session_state: st.session_state.ack_toxic = False
-if 'ack_ef' not in st.session_state: st.session_state.ack_ef = False
 
 def next_step(): st.session_state.step += 1
 def prev_step(): st.session_state.step -= 1
@@ -95,17 +92,12 @@ elif st.session_state.step == 1:
     c1, c2 = st.columns([1, 5])
     c1.button("Back", on_click=prev_step)
     
-    # HARD STOP LOGIC
+    # HARD STOP LOGIC (Input Driven)
     if st.session_state.take_home is not None and st.session_state.committed is not None:
         if margin <= 0:
-            st.error("🚨 **HARD STOP: LIQUIDITY CRISIS**\n\nYour fixed bills are higher than your income. You are mathematically underwater. The system cannot build wealth on a collapsing foundation. **You must immediately cancel subscriptions, negotiate bills, or take on extra income.** The system will not allow you to proceed until your Guilt-Free Margin is positive.")
+            st.error("🚨 **Your One Next Step: Stop the Bleeding**\n\nYour fixed bills are higher than your income. You are mathematically underwater. The system cannot build wealth on a collapsing foundation.\n\n**Action Required:** Leave this app right now. Cancel subscriptions, negotiate bills, or take on extra income. Do not return to this page until you can change your 'Committed Bills' number above to create a positive margin.")
         elif "leaving match money" in st.session_state.employer_match:
-            st.warning("⚠️ **DIRECTIVE TRIGGERED: CAPTURE FREE MONEY**\n\nYour employer is offering you a guaranteed 100% return, and you are ignoring it. We do not invest or save extra cash until this is captured.")
-            st.session_state.ack_match = st.checkbox("I commit to logging into my HR portal today to maximize my match.", value=st.session_state.ack_match)
-            if st.session_state.ack_match:
-                c2.button("Next: Assets & Debts", on_click=next_step, type="primary")
-            else:
-                c2.button("Acknowledge the directive above to continue", disabled=True)
+            st.warning("⚠️ **Your One Next Step: Capture Free Money**\n\nYour employer is offering you a guaranteed 100% return, and you are ignoring it. We do not invest, save, or pay down extra debt until this is captured.\n\n**Action Required:** Leave this app right now. Log into your HR portal and increase your 401(k) contribution to the exact match limit. Once that is done, change the selection above to 'No / I already get the full match' to unlock the next step.")
         else:
             c2.button("Next: Assets & Debts", on_click=next_step, type="primary")
     else:
@@ -121,7 +113,6 @@ elif st.session_state.step == 2:
     st.divider()
     st.subheader("The Debt Ledger")
     
-    # Added key="debt_editor_ui" to fix the double-typing focus glitch
     st.session_state.debt_df = st.data_editor(
         st.session_state.debt_df, 
         num_rows="dynamic", 
@@ -161,22 +152,11 @@ elif st.session_state.step == 2:
         
         ef_target = com_val * 3
         
-        # HARD STOP LOGIC
+        # HARD STOP LOGIC (Input Driven)
         if has_toxic_debt:
-            st.error("🧨 **DIRECTIVE TRIGGERED: DESTROY TOXIC DEBT**\n\nYou are bleeding cash to high-interest debt (APR 7% or higher). You must route 100% of your Guilt-Free Margin directly to the principal of this debt until it is gone. Suspend all other saving goals.")
-            st.session_state.ack_toxic = st.checkbox("I commit to avalanching my margin into this debt.", value=st.session_state.ack_toxic)
-            if st.session_state.ack_toxic:
-                c2.button("Next: Sinking Funds", on_click=next_step, type="primary")
-            else:
-                c2.button("Acknowledge the directive above to continue", disabled=True)
-                
+            st.error(f"🧨 **Your One Next Step: Destroy High-Interest Debt**\n\nYou are bleeding cash to high-interest debt (APR 7% or higher). You must route 100% of your Guilt-Free Margin directly to the principal of this debt until it is gone. Suspend all other saving goals.\n\n**Action Required:** Leave this app right now. Log into your bank and set up an automatic transfer of **\${margin:,.2f}** to your highest APR debt. You are not ready for Sinking Funds or Goal Trajectories. Bookmark this page and update this ledger when your high-interest balance is $0.")
         elif st.session_state.savings < ef_target:
-            st.warning(f"🛡️ **DIRECTIVE TRIGGERED: BUILD THE FORTRESS**\n\nYour debts are manageable, but your safety net is incomplete. Your survival target is \${ef_target:,.2f}. You must route 100% of your margin into a High-Yield Savings Account until this vault is full.")
-            st.session_state.ack_ef = st.checkbox("I commit to prioritizing my safety net above all other goals.", value=st.session_state.ack_ef)
-            if st.session_state.ack_ef:
-                c2.button("Next: Sinking Funds", on_click=next_step, type="primary")
-            else:
-                c2.button("Acknowledge the directive above to continue", disabled=True)
+            st.warning(f"🛡️ **Your One Next Step: Build the Fortress**\n\nYour debts are manageable, but your safety net is incomplete. Your 3-month survival target is \${ef_target:,.2f}. You must route 100% of your margin into a High-Yield Savings Account until this vault is full.\n\n**Action Required:** Leave this app right now. Log into your bank and automate a **\${margin:,.2f}** monthly transfer to your savings account. Bookmark this page and return when your cash balance input above hits \${ef_target:,.2f} to unlock the next phases.")
         else:
             c2.button("Next: Sinking Funds", on_click=next_step, type="primary")
     else:
@@ -239,7 +219,7 @@ elif st.session_state.step == 4:
 # STAGE 5: GOAL TRAJECTORY (WITH COMPOUND INTEREST)
 elif st.session_state.step == 5:
     st.header("Step 5: Set a specific financial goal.")
-    st.caption("Setting a goal requires serious thought. Money without direction is easily wasted. What are you actually buying back your time for? Examples of common, high-impact goals: A 20% down payment on a house, a 6-month 'F-You' opportunity fund, paying cash for a reliable car, or maxing out a Roth IRA for the year.")
+    st.caption("Money without direction is easily wasted. What are you actually buying back your time for? Examples of common, high-impact goals: A 20% down payment on a house, a 6-month 'F-You' opportunity fund, paying cash for a reliable car, or maxing out a Roth IRA for the year.")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -291,10 +271,13 @@ elif st.session_state.step == 5:
 # STAGE 6: FINAL CHECKOUT
 elif st.session_state.step == 6:
     st.header("Step 6: System Armed")
-    st.caption("You have successfully audited your baseline and mathematically mapped your path. Stick to the commitments you checked off during this process.")
+    st.caption("You have cleared every hurdle. You have a positive margin, maximum employer match, zero toxic debt, and a fully funded 3-month safety net.")
     
-    st.success("✅ **AUDIT COMPLETE.** Check your Snapshot on the left to verify your final Guilt-Free Margin.")
-    
+    if not st.session_state.sinking_df.empty:
+        st.info("📅 **Your One Next Step: Automate Sinking Funds**\n\nLog into your bank, open sub-folders (or a separate checking account), and set up automated monthly transfers for the bills you listed in Step 3. Once that is running on autopilot, move to the final step below.")
+
+    st.success("📈 **Your One Next Step: Compound Your Wealth**\n\nDeploy your unallocated **\${margin:,.2f}** monthly margin into low-cost, broad-market equity index funds to build long-term wealth.")
+
     st.divider()
     st.subheader("System Governance & Failsafes")
     col_g1, col_g2 = st.columns(2)
