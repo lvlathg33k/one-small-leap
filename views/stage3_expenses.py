@@ -3,12 +3,15 @@ import streamlit as st
 def render(next_step, prev_step, margin):
     # Full-screen takeover when in a deficit
     if st.session_state.base_committed is not None and margin <= 0:
+        committed_val = st.session_state.base_committed
+        take_home_val = st.session_state.take_home or 0.0
+        deficit_val = abs(margin)
+
         st.error("🚨 **CRITICAL DEFICIT: STOP THE BLEEDING**")
-        st.markdown(f"""
-        Your committed monthly obligations (**${st.session_state.base_committed:,.2f}**) equal or exceed your take-home pay (**${st.session_state.take_home:,.2f}**). 
-        
-        You are operating at a monthly deficit of **${abs(margin):,.2f}**. You cannot build wealth or pay off debt on a negative foundation. You must adjust your numbers by playing defense, offense, or both.
-        """)
+        st.markdown(
+            f"Your committed monthly obligations (**\\${committed_val:,.2f}**) equal or exceed your take-home pay (**\\${take_home_val:,.2f}**).\n\n"
+            f"You are operating at a monthly deficit of **\\${deficit_val:,.2f}**. You cannot build wealth or pay off debt on a negative foundation. You must adjust your numbers by playing defense, offense, or both."
+        )
         
         col_exp, col_inc = st.columns(2)
         
