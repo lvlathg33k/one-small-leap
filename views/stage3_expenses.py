@@ -43,11 +43,11 @@ def render(next_step, prev_step, margin):
         3. Return only after your real monthly cash flow has shifted into positive territory.
         """)
 
-        def unlock_for_reentry():
-            # Reset committed so they re-enter verified reality
+        def reset_to_step_1():
+            st.session_state.step = 1
             st.session_state.base_committed = None
 
-        st.button("🔄 I Have Executed Changes in Real Life (Update Numbers)", on_click=unlock_for_reentry, type="primary")
+        st.button("🔄 I Have Executed Changes in Real Life (Update Numbers)", on_click=reset_to_step_1, type="primary")
 
     else:
         # Standard input screen
