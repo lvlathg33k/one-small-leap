@@ -7,47 +7,47 @@ def render(next_step, prev_step, margin):
         take_home_val = st.session_state.take_home or 0.0
         deficit_val = abs(margin)
 
-        st.error("🚨 **CRITICAL DEFICIT: STOP THE BLEEDING**")
+        st.error("🚨 **CRITICAL DEFICIT: PAUSE AND EXECUTE IN REAL LIFE**")
         st.markdown(
-            f"Your committed monthly obligations (**\\${committed_val:,.2f}**) equal or exceed your take-home pay (**\\${take_home_val:,.2f}**).\n\n"
-            f"You are operating at a monthly deficit of **\\${deficit_val:,.2f}**. You cannot build wealth or pay off debt on a negative foundation. You must adjust your numbers by playing defense, offense, or both."
+            f"Your committed monthly bills (**\\${committed_val:,.2f}**) exceed your take-home pay (**\\${take_home_val:,.2f}**) "
+            f"by **\\${deficit_val:,.2f}** every single month.\n\n"
+            "**Do not rush past this screen.** You cannot mathematically build wealth or eliminate debt while cash flow is negative. "
+            "Fixing this gap is not an in-app toggle—it requires real-world time, discipline, and execution."
         )
         
         col_exp, col_inc = st.columns(2)
         
         with col_exp:
-            st.subheader("🛡️ Defense: Cut Expenses")
+            st.subheader("🛡️ Lever 1: Cut Fixed Overhead")
             st.markdown("""
-            * **Audit Recurring Subscriptions:** Cancel streaming services, gym memberships, and unused app subscriptions.
-            * **Negotiate Fixed Bills:** Call auto insurance providers for quotes, negotiate internet rates, or switch to a discount cell carrier.
-            * **Groceries vs. Dining Out:** Cut takeout completely until cash flow is positive. Plan weekly meals around staples.
-            * **Pause Discretionary Spending:** Freeze non-essential purchases (clothing, electronics, entertainment).
+            * **Immediate Subscriptions:** Cancel unused streaming, gym, and recurring software memberships today.
+            * **Shop Fixed Services:** Get competitive quotes for car insurance, home/renters insurance, and home internet.
+            * **Food Spending:** Eliminate restaurant meals and takeout until cash flow is positive.
+            * **Discretionary Freeze:** Pause non-essential apparel, gear, and lifestyle purchases entirely.
             """)
             
         with col_inc:
-            st.subheader("⚔️ Offense: Increase Income")
+            st.subheader("⚔️ Lever 2: Increase Gross Cash Flow")
             st.markdown("""
-            * **Monetize Unused Assets:** Sell clutter, electronics, or furniture on Facebook Marketplace or OfferUp for immediate cash.
-            * **Short-Term Cash Flow:** Pick up shifts, overtime, or temporary gig work (delivery, rideshare, task platforms).
-            * **Freelance / Skill Monetization:** Offer immediate services based on your professional skillset.
-            * **Career Renegotiation:** Schedule a review for a raise or begin interviewing for higher-paying positions.
+            * **Quick Asset Liquidation:** Sell unused electronics, tools, or furniture on local marketplaces for fast cash.
+            * **Overtime / Extra Shifts:** Pick up additional hours at your current role if available.
+            * **Short-Term Gig Work:** Deploy weekend or evening hours to rideshare, delivery, or local task contracts.
+            * **Career Positioning:** Map out a structured plan for your next promotion or target higher-paying openings.
             """)
             
         st.divider()
-        st.subheader("Choose your next operational move:")
-        st.caption("Select the action you took to fix the imbalance so the system can update your baseline numbers.")
-        
-        def go_to_income():
-            st.session_state.step = 1
+        st.subheader("Step away from the screen.")
+        st.markdown("""
+        1. **Bookmark this URL.**
+        2. Close this tab and execute at least **one defense** and **one offense** action in your actual life.
+        3. Return only after your real monthly cash flow has shifted into positive territory.
+        """)
 
-        def reset_expenses_only():
+        def unlock_for_reentry():
+            # Reset committed so they re-enter verified reality
             st.session_state.base_committed = None
 
-        btn_c1, btn_c2, btn_c3 = st.columns(3)
-        
-        btn_c1.button("📉 I Decreased My Expenses", on_click=reset_expenses_only, use_container_width=True)
-        btn_c2.button("📈 I Increased My Income", on_click=go_to_income, use_container_width=True)
-        btn_c3.button("⚡ I Did Both", on_click=go_to_income, use_container_width=True)
+        st.button("🔄 I Have Executed Changes in Real Life (Update Numbers)", on_click=unlock_for_reentry, type="primary")
 
     else:
         # Standard input screen
