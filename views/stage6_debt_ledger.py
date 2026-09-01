@@ -183,7 +183,11 @@ def render(next_step, prev_step, margin):
                     "grow forever."
                 )
 
-            if any(r["APR (%)"] >= TOXIC_APR for r in temp_df.to_dict("records")):
+            toxic_owed = [
+                r for r in temp_df.to_dict("records")
+                if r["APR (%)"] >= TOXIC_APR and r["Balance ($)"] > 0
+            ]
+            if toxic_owed:
                 st.error(
                     "🧨 **Your One Next Step: Destroy High-Interest Debt**\n\n"
                     "You are carrying toxic debt. Route 100% of your Guilt-Free Margin at the "
@@ -198,10 +202,12 @@ def render(next_step, prev_step, margin):
     c1, c2 = st.columns([1, 5])
     c1.button("Back", on_click=prev_step)
 
-    has_toxic_debt = (
-        not st.session_state.debt_df.empty
-        and bool((pd.to_numeric(st.session_state.debt_df["APR (%)"], errors="coerce").fillna(0) >= TOXIC_APR).any())
-    )
+    if st.session_state.debt_df.empty:
+        has_toxic_debt = False
+    else:
+        apr_series = pd.to_numeric(st.session_state.debt_df["APR (%)"], errors="coerce").fillna(0)
+        bal_series = pd.to_numeric(st.session_state.debt_df["Balance ($)"], errors="coerce").fillna(0)
+        has_toxic_debt = bool(((apr_series >= TOXIC_APR) & (bal_series > 0)).any())
 
     if has_toxic_debt:
         c2.button("Clear Toxic Debt to Proceed", disabled=True)

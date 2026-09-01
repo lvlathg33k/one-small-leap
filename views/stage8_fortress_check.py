@@ -15,7 +15,7 @@ def _toxic_debt_summary():
         return 0.0, 0
     apr = pd.to_numeric(df.get("APR (%)"), errors="coerce").fillna(0.0)
     bal = pd.to_numeric(df.get("Balance ($)"), errors="coerce").fillna(0.0)
-    toxic = apr >= TOXIC_APR
+    toxic = (apr >= TOXIC_APR) & (bal > 0)
     return float(bal[toxic].sum()), int(toxic.sum())
 
 
