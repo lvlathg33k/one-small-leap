@@ -20,7 +20,7 @@ def _toxic_debt_summary():
 
 
 def render(next_step, prev_step, com_val, margin):
-    st.header("Step 8: The Fortress Check")
+    st.header("Step 7: The Fortress Check")
     st.caption(
         "Before we expose a single dollar to the market, your cash moat must be exactly right — "
         "not too thin, not bloated. Underfunded cash is fragility. Excess idle cash is a slow, "
@@ -104,7 +104,7 @@ def render(next_step, prev_step, com_val, margin):
             "you at double digits is a math failure, not a safety cushion.\n\n"
             "**Action Required:** Leave this app. Transfer the full "
             f"**\\${surplus:,.2f}** surplus to the principal of your highest-APR debt, then return "
-            "to Step 6 and update the ledger."
+            "to Step 5 and update the ledger."
         )
         c2.button("Deploy Surplus to Proceed", disabled=True)
         return
@@ -115,7 +115,7 @@ def render(next_step, prev_step, com_val, margin):
         f"You are debt-free with a fully funded moat, but **\\${surplus:,.2f}** is sitting above your "
         "target and decaying to inflation every month it stays in cash. Cash beyond your moat is not "
         "safety — it is a slow, silent loss.\n\n"
-        f"**Your move:** Carry this **\\${surplus:,.2f}** into Step 10 and deploy it through the Capital "
+        f"**Your move:** Carry this **\\${surplus:,.2f}** into Step 9 and deploy it through the Capital "
         "Allocation Waterfall alongside your monthly margin. Advance now."
     )
     c2.button("Next", on_click=next_step, type="primary")

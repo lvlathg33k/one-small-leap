@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 def render(next_step, prev_step):
-    st.header("Step 7: Sinking Funds")
+    st.header("Step 6: Sinking Funds")
     st.caption("List your predictable non-monthly expenses (Car Registration, Christmas, Vacations). Adding these will actively reduce your Guilt-Free Margin on the left sidebar to ensure you are automatically saving for them.")
     
     with st.form("add_sinking_form", clear_on_submit=True):

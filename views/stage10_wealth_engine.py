@@ -8,7 +8,7 @@ MAX_TRAJECTORY_MONTHS = 1200  # 100-year cap keeps the chart bounded.
 
 
 def render(next_step, prev_step, reset, margin):
-    st.header("Step 10: The Wealth Engine")
+    st.header("Step 9: The Wealth Engine")
     st.caption(
         "You survived the gauntlet: zero toxic debt, a fully funded moat, automated sinking funds. "
         "Now deploy your unallocated margin into wealth generation — in the correct order, every time."
