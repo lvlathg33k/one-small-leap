@@ -6,7 +6,6 @@ from views import (
     stage2_match,
     stage3_expenses,
     stage4_assets,
-    stage5_debt_discovery,
     stage6_debt_ledger,
     stage7_sinking_funds,
     stage8_fortress_check,
@@ -77,17 +76,17 @@ margin = th_val - com_val
 
 with st.sidebar:
     st.header("Your Snapshot")
-    st.markdown(f"**Total Take-Home**<br><span style='color: #4da6ff; font-size: 24px; font-weight: bold;'>\${th_val:,.2f}</span>", unsafe_allow_html=True)
-    st.markdown(f"**Committed Money**<br><span style='color: #cc0000; font-size: 24px; font-weight: bold;'>\${com_val:,.2f}</span>", unsafe_allow_html=True)
+    st.markdown(f"**Total Take-Home**<br><span style='color: #4da6ff; font-size: 24px; font-weight: bold;'>\\${th_val:,.2f}</span>", unsafe_allow_html=True)
+    st.markdown(f"**Committed Money**<br><span style='color: #cc0000; font-size: 24px; font-weight: bold;'>\\${com_val:,.2f}</span>", unsafe_allow_html=True)
     if sinking_monthly > 0:
-        st.caption(f"(Includes \${sinking_monthly:,.2f} automated sinking funds)")
+        st.caption(f"(Includes \\${sinking_monthly:,.2f} automated sinking funds)")
     
     margin_color = "#00cc44" if margin > 0 else "#ff3333"
     margin_label = "Guilt-Free Margin" if margin > 0 else "Liquidity Deficit"
-    st.markdown(f"**{margin_label}**<br><span style='color: {margin_color}; font-size: 24px; font-weight: bold;'>\${margin:,.2f}</span>", unsafe_allow_html=True)
+    st.markdown(f"**{margin_label}**<br><span style='color: {margin_color}; font-size: 24px; font-weight: bold;'>\\${margin:,.2f}</span>", unsafe_allow_html=True)
     
     st.divider()
-    total_steps = 10
+    total_steps = 9
     st.progress(min((st.session_state.step) / total_steps, 1.0))
     st.caption(f"Stage {st.session_state.step} of {total_steps}")
 
@@ -105,14 +104,12 @@ elif st.session_state.step == 3:
 elif st.session_state.step == 4:
     stage4_assets.render(next_step, prev_step, com_val)
 elif st.session_state.step == 5:
-    stage5_debt_discovery.render(next_step, prev_step)
-elif st.session_state.step == 6:
     stage6_debt_ledger.render(next_step, prev_step, margin)
-elif st.session_state.step == 7:
+elif st.session_state.step == 6:
     stage7_sinking_funds.render(next_step, prev_step)
-elif st.session_state.step == 8:
+elif st.session_state.step == 7:
     stage8_fortress_check.render(next_step, prev_step, com_val, margin)
-elif st.session_state.step == 9:
+elif st.session_state.step == 8:
     stage9_hsa.render(next_step, prev_step)
-elif st.session_state.step == 10:
+elif st.session_state.step == 9:
     stage10_wealth_engine.render(next_step, prev_step, reset, margin)

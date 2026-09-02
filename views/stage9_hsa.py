@@ -1,7 +1,7 @@
 import streamlit as st
 
 def render(next_step, prev_step):
-    st.header("Step 9: The HSA Gateway")
+    st.header("Step 8: The HSA Gateway")
     st.caption("Health Savings Accounts are triple-tax-advantaged (tax-free in, tax-free growth, tax-free out). We need to see if you qualify to use one.")
     
     st.session_state.hdhp_status = st.radio(
