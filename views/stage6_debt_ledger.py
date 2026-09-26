@@ -161,8 +161,8 @@ def render(next_step, prev_step, margin):
         ledger = st.session_state.debt_df
 
         # Render the ledger row by row so each line carries its own trash button.
-        _COLS = [3, 2, 1.5, 2, 1]
-        head = st.columns(_COLS)
+        _COLS = [4, 2.2, 1.6, 2.2, 1]
+        head = st.columns(_COLS, vertical_alignment="center")
         head[0].markdown("**Liability**")
         head[1].markdown("**Balance**")
         head[2].markdown("**APR**")
@@ -178,7 +178,7 @@ def render(next_step, prev_step, margin):
             apr = 0.0 if pd.isna(apr) else float(apr)
             mn = 0.0 if pd.isna(mn) else float(mn)
 
-            row = st.columns(_COLS)
+            row = st.columns(_COLS, vertical_alignment="center")
             row[0].write(name)
             row[1].write(f"\\${bal:,.2f}")
             row[2].write(f"{apr:.1f}%")
