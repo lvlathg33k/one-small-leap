@@ -120,14 +120,11 @@ def _add_debt():
         st.session_state[key] = default
 
 
-def _delete_debts():
-    """Callback to remove the selected liabilities from the ledger."""
-    idxs = st.session_state.get("debt_delete_select", [])
-    if idxs:
-        st.session_state.debt_df = (
-            st.session_state.debt_df.drop(index=idxs, errors="ignore").reset_index(drop=True)
-        )
-    st.session_state.debt_delete_select = []
+def _delete_row(index):
+    """Callback for a row's trash button: remove that single liability."""
+    df = st.session_state.debt_df
+    if 0 <= index < len(df):
+        st.session_state.debt_df = df.drop(df.index[index]).reset_index(drop=True)
 
 
 def render(next_step, prev_step, margin):
@@ -160,33 +157,39 @@ def render(next_step, prev_step, margin):
     if st.session_state.debt_df.empty:
         st.info("No liabilities logged yet. Add one above, or confirm the checklist below if you are debt-free.")
     else:
-        st.markdown("### Current Ledger (Editable)")
-        # Key varies with row count so structural changes (add/delete) reset the
-        # grid cleanly; inline edits within a stable row count still persist.
-        st.session_state.debt_df = st.data_editor(
-            st.session_state.debt_df,
-            use_container_width=True,
-            hide_index=True,
-            key=f"debt_editor_ui_{len(st.session_state.debt_df)}",
-        )
+        st.markdown("### Current Ledger")
+        ledger = st.session_state.debt_df
 
-        # Explicit delete control (keeps the grid add-proof so the validated
-        # button stays the only way to CREATE a liability).
-        names = st.session_state.debt_df["Debt Name"].tolist()
-        del_c1, del_c2 = st.columns([5, 1])
-        del_c1.multiselect(
-            "Delete a liability",
-            options=list(range(len(names))),
-            format_func=lambda i: names[i],
-            key="debt_delete_select",
-            placeholder="Select one or more liabilities to remove",
-        )
-        del_c2.button(
-            "🗑️ Delete",
-            on_click=_delete_debts,
-            use_container_width=True,
-            disabled=not st.session_state.get("debt_delete_select"),
-        )
+        # Render the ledger row by row so each line carries its own trash button.
+        _COLS = [3, 2, 1.5, 2, 1]
+        head = st.columns(_COLS)
+        head[0].markdown("**Liability**")
+        head[1].markdown("**Balance**")
+        head[2].markdown("**APR**")
+        head[3].markdown("**Min Payment**")
+        head[4].markdown("**Remove**")
+
+        for i in range(len(ledger)):
+            name = str(ledger.iloc[i]["Debt Name"])
+            bal = pd.to_numeric(ledger.iloc[i]["Balance ($)"], errors="coerce")
+            apr = pd.to_numeric(ledger.iloc[i]["APR (%)"], errors="coerce")
+            mn = pd.to_numeric(ledger.iloc[i]["Min Payment ($)"], errors="coerce")
+            bal = 0.0 if pd.isna(bal) else float(bal)
+            apr = 0.0 if pd.isna(apr) else float(apr)
+            mn = 0.0 if pd.isna(mn) else float(mn)
+
+            row = st.columns(_COLS)
+            row[0].write(name)
+            row[1].write(f"\\${bal:,.2f}")
+            row[2].write(f"{apr:.1f}%")
+            row[3].write(f"\\${mn:,.2f}")
+            row[4].button(
+                "🗑️",
+                key=f"del_debt_{i}",
+                help=f"Delete {name}",
+                on_click=_delete_row,
+                args=(i,),
+            )
 
         temp_df = st.session_state.debt_df.copy()
         temp_df["Balance ($)"] = pd.to_numeric(temp_df["Balance ($)"], errors="coerce").fillna(0)
@@ -248,8 +251,8 @@ def render(next_step, prev_step, margin):
                     "principal of your highest-APR debt — nothing else moves until it is gone.\n\n"
                     f"**Action Required:** Leave this app. Automate a **\\${max(margin, 0.0):,.2f}** "
                     "monthly transfer to your highest-APR debt. You cannot proceed to wealth planning "
-                    "until this ledger shows \\$0 for every liability at or above "
-                    f"{TOXIC_APR:.0f}% APR."
+                    f"until every liability at or above {TOXIC_APR:.0f}% APR is paid off and removed "
+                    "from this ledger (use the 🗑️ button)."
                 )
 
     # ------------------------------------------------------------------
