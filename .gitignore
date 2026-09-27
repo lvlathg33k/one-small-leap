@@ -3,6 +3,11 @@
 # dependencies
 node_modules/
 
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
 # Expo
 .expo/
 dist/
