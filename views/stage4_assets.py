@@ -11,7 +11,7 @@ def render(next_step, prev_step, com_val):
         st.session_state.ast_savings = st.number_input("Savings Accounts ($)", min_value=0.0, value=st.session_state.ast_savings, help="Where you park cash for emergencies or short-term goals. Should ideally be a High-Yield Savings Account (HYSA).")
         
         st.subheader("Real Estate")
-        st.session_state.ast_home = st.number_input("Home Equity ($)", min_value=0.0, value=st.session_state.ast_home, help="The estimated value of your home MINUS what you still owe on the mortgage.")
+        st.session_state.ast_home = st.number_input("Estimated Home Value ($)", min_value=0.0, value=st.session_state.ast_home, help="A rough estimate of what your home is worth today. Just the value — do not subtract your mortgage.")
         
     with col2:
         st.subheader("Investments & Retirement")
@@ -29,6 +29,6 @@ def render(next_step, prev_step, com_val):
     ef_target = com_val * 3
     
     if total_cash < ef_target and taxable_investments > 0:
-        st.warning(f"⚠️ **System Observation:** Your cash safety net is underfunded, but you have \${taxable_investments:,.2f} exposed in taxable market accounts. You may need to liquidate investments to fill your cash moat to \${ef_target:,.2f}.")
+        st.warning(f"⚠️ **System Observation:** Your cash safety net is underfunded, but you have \\${taxable_investments:,.2f} exposed in taxable market accounts. You may need to liquidate investments to fill your cash moat to \\${ef_target:,.2f}.")
         
     c2.button("Next", on_click=next_step, type="primary")
