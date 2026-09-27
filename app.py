@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from views import (
+    _anchor,
     stage0_setup,
     stage1_income,
     stage2_match,
@@ -19,7 +20,11 @@ st.set_page_config(page_title="One Small Leap", layout="wide", initial_sidebar_s
 # SESSION STATE INITIALIZATION
 # ==========================================
 if 'step' not in st.session_state: st.session_state.step = 0
-if 'household' not in st.session_state: st.session_state.household = "Single Operator"
+if 'household' not in st.session_state: st.session_state.household = "Just me"
+
+# The emotional anchor (captured in Phase 1, referenced everywhere after)
+if 'anchor_goal' not in st.session_state: st.session_state.anchor_goal = None
+if 'anchor_detail' not in st.session_state: st.session_state.anchor_detail = ""
 
 # Cash Flow
 if 'take_home' not in st.session_state: st.session_state.take_home = None
@@ -75,20 +80,30 @@ com_val = base_com_val + sinking_monthly
 margin = th_val - com_val
 
 with st.sidebar:
-    st.header("Your Snapshot")
-    st.markdown(f"**Total Take-Home**<br><span style='color: #4da6ff; font-size: 24px; font-weight: bold;'>\\${th_val:,.2f}</span>", unsafe_allow_html=True)
-    st.markdown(f"**Committed Money**<br><span style='color: #cc0000; font-size: 24px; font-weight: bold;'>\\${com_val:,.2f}</span>", unsafe_allow_html=True)
+    why = _anchor.sidebar_phrase()
+    if why:
+        st.markdown("**🧭 What this is all for**")
+        st.markdown(
+            f"<span style='font-size: 17px; color: #e0b64d; font-weight: 600;'>{why}</span>",
+            unsafe_allow_html=True,
+        )
+        st.caption("We'll keep coming back to this every time a decision gets hard.")
+        st.divider()
+
+    st.header("Where you stand")
+    st.markdown(f"**Monthly take-home**<br><span style='color: #4da6ff; font-size: 24px; font-weight: bold;'>\\${th_val:,.2f}</span>", unsafe_allow_html=True)
+    st.markdown(f"**Committed each month**<br><span style='color: #cc0000; font-size: 24px; font-weight: bold;'>\\${com_val:,.2f}</span>", unsafe_allow_html=True)
     if sinking_monthly > 0:
-        st.caption(f"(Includes \\${sinking_monthly:,.2f} automated sinking funds)")
+        st.caption(f"(Includes \\${sinking_monthly:,.2f}/mo set aside for the expenses that ambush you)")
     
     margin_color = "#00cc44" if margin > 0 else "#ff3333"
-    margin_label = "Guilt-Free Margin" if margin > 0 else "Liquidity Deficit"
+    margin_label = "Guilt-Free money to deploy" if margin > 0 else "Monthly shortfall"
     st.markdown(f"**{margin_label}**<br><span style='color: {margin_color}; font-size: 24px; font-weight: bold;'>\\${margin:,.2f}</span>", unsafe_allow_html=True)
     
     st.divider()
     total_steps = 9
     st.progress(min((st.session_state.step) / total_steps, 1.0))
-    st.caption(f"Stage {st.session_state.step} of {total_steps}")
+    st.caption(f"Step {st.session_state.step} of {total_steps} — no rush, we go at your pace")
 
 # ==========================================
 # ROUTER

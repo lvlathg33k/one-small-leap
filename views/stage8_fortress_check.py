@@ -1,15 +1,12 @@
 import streamlit as st
 import pandas as pd
+from views import _anchor
 
 TOXIC_APR = 7.0
 
 
 def _toxic_debt_summary():
-    """Return (total_toxic_balance, toxic_debt_count) from the debt ledger.
-
-    Toxic debt is any liability with an APR at or above TOXIC_APR. The ledger is
-    user-editable, so every value is coerced defensively before it is trusted.
-    """
+    """Return (total_toxic_balance, toxic_debt_count) from the debt ledger."""
     df = st.session_state.get("debt_df")
     if df is None or getattr(df, "empty", True):
         return 0.0, 0
@@ -20,11 +17,12 @@ def _toxic_debt_summary():
 
 
 def render(next_step, prev_step, com_val, margin):
-    st.header("Step 7: The Fortress Check")
-    st.caption(
-        "Before we expose a single dollar to the market, your cash moat must be exactly right — "
-        "not too thin, not bloated. Underfunded cash is fragility. Excess idle cash is a slow, "
-        "guaranteed loss to inflation. We fix both here."
+    st.header("Before we invest — your safety net comes first")
+    st.markdown(
+        "Here's the order that actually protects you: a cash cushion *before* the stock market. Investing "
+        "without a safety net means one bad month — a car repair, a lost shift — can force you to sell at the "
+        "worst possible time and undo real progress. A few months of expenses in cash is what lets you pursue "
+        f"**{_anchor.anchor_phrase()}** without lying awake at night. The target is about **3 months** of your essentials."
     )
 
     ef_target = com_val * 3
@@ -34,88 +32,80 @@ def render(next_step, prev_step, com_val, margin):
     total_cash = checking + savings
 
     m1, m2, m3 = st.columns(3)
-    m1.metric("3-Month Survival Target", f"${ef_target:,.2f}")
-    m2.metric("Current Liquid Cash", f"${total_cash:,.2f}")
-    m3.metric("Taxable Brokerage", f"${taxable:,.2f}")
+    m1.metric("3-month safety net target", f"${ef_target:,.2f}")
+    m2.metric("Cash you have now", f"${total_cash:,.2f}")
+    m3.metric("Money invested (taxable)", f"${taxable:,.2f}")
 
     st.divider()
     c1, c2 = st.columns([1, 5])
     c1.button("Back", on_click=prev_step)
 
     # ------------------------------------------------------------------
-    # UNDERFUNDED: the moat has a gap. This is a hard stop.
+    # UNDERFUNDED: the cushion has a gap.
     # ------------------------------------------------------------------
     if total_cash < ef_target:
         gap = ef_target - total_cash
 
         if taxable > gap:
-            # Reallocation directive: the gap can be closed today by liquidating
-            # unprotected market exposure instead of saving for months.
-            st.error("🛡️ **CRITICAL: FUND THE MOAT FROM YOUR BROKERAGE — DO NOT PROCEED**")
+            st.subheader("Good news — you can build this cushion faster than you think.")
             st.markdown(
-                f"Your cash safety net is short by **\\${gap:,.2f}**, yet you are holding "
-                f"**\\${taxable:,.2f}** exposed in a taxable brokerage account. "
-                "You will not save your way out of this over months. You will close it today."
+                f"Your cash safety net is short by about **\\${gap:,.2f}**. But here's the thing: you've already got "
+                f"**\\${taxable:,.2f}** invested in a regular (taxable) account. That money is doing a job, but "
+                "*a safety net is a more important job right now.* You don't have to slowly save your way there over "
+                "months — you can shore it up much faster.\n\n"
+                "**Something to consider:** move about "
+                f"**\\${gap:,.2f}** from your regular investment account into a High-Yield Savings Account, and leave "
+                f"the rest (**\\${taxable - gap:,.2f}**) invested and growing. That single move gives you a real "
+                f"cushion, so a rough month can't derail **{_anchor.anchor_phrase()}**."
             )
-            st.markdown(
-                f"1. Sell **\\${gap:,.2f}** of your taxable brokerage holdings.\n"
-                f"2. Move the proceeds into your High-Yield Savings Account (HYSA).\n"
-                f"3. Leave the remaining **\\${taxable - gap:,.2f}** invested and working.\n"
-                f"4. Return to Step 4 and update your liquid cash to **\\${ef_target:,.2f}**."
-            )
-            st.caption(
-                "Market exposure without a cash moat is gambling. Liquidate the exposure, "
-                "seal the moat, then come back."
-            )
+            st.caption("When your cash cushion is topped up, come back to the assets step and update the numbers — then we'll keep going.")
         else:
-            # Not enough taxable to close the gap: the margin must fund it.
-            st.error("🛡️ **CRITICAL: BUILD THE FORTRESS — DO NOT PROCEED**")
+            st.subheader("Let's build this cushion together, one month at a time.")
             st.markdown(
-                f"Your safety net is short by **\\${gap:,.2f}**, and your brokerage cannot cover the gap. "
-                "Every dollar of Guilt-Free Margin now has exactly one job: fill this vault.\n\n"
-                "**Action Required:** Leave this app. Automate a "
-                f"**\\${margin:,.2f}** monthly transfer into your HYSA. Return to Step 4 and update "
-                f"your balance once liquid cash reaches **\\${ef_target:,.2f}**."
+                f"Your safety net is short by about **\\${gap:,.2f}**, and there aren't enough investments to close "
+                "it in one move — that's completely fine, most people build it gradually. For now, your spare cash "
+                "has one clear job.\n\n"
+                f"**The one next step:** automate a transfer of **\\${margin:,.2f}/mo** into a High-Yield Savings "
+                f"Account until the cushion reaches **\\${ef_target:,.2f}**. Every dollar there is a dollar of peace "
+                f"of mind protecting **{_anchor.anchor_phrase()}**. Update your cash on the assets step as it grows."
             )
-        c2.button("Fill Fortress to Proceed", disabled=True)
+        c2.button("Let's get the safety net funded first", disabled=True)
         return
 
     # ------------------------------------------------------------------
-    # FUNDED: verify we are not bleeding surplus cash to inflation.
+    # FUNDED: make sure surplus cash isn't quietly losing to inflation.
     # ------------------------------------------------------------------
     surplus = total_cash - ef_target
     toxic_balance, toxic_count = _toxic_debt_summary()
 
-    st.success(f"✅ Fortress funded: **\\${total_cash:,.2f}** liquid against a **\\${ef_target:,.2f}** target.")
+    st.success(f"✅ Your safety net is funded — **\\${total_cash:,.2f}** in cash against a **\\${ef_target:,.2f}** target. That's the foundation. Nicely done.")
 
     if surplus <= 0.01:
-        st.caption("Your cash position is precise. No idle capital detected. You are cleared for wealth generation.")
+        st.caption("Your cash is right where it should be — protected, not idle. You're cleared to start building. Let's go.")
         c2.button("Next", on_click=next_step, type="primary")
         return
 
     if toxic_balance > 0:
-        # Surplus cash sitting idle while double-digit debt compounds is a
-        # guaranteed loss. Hard stop until it is deployed against the debt.
-        st.error("🧨 **CRITICAL: DEPLOY SURPLUS AGAINST TOXIC DEBT — DO NOT PROCEED**")
+        st.subheader("Quick math worth pausing on.")
         st.markdown(
-            f"You are sitting on **\\${surplus:,.2f}** of surplus cash above your moat while carrying "
-            f"**\\${toxic_balance:,.2f}** across **{toxic_count}** high-interest "
-            f"(≥ {TOXIC_APR:.0f}% APR) liability(ies). Cash earning ~4% while debt compounds against "
-            "you at double digits is a math failure, not a safety cushion.\n\n"
-            "**Action Required:** Leave this app. Transfer the full "
-            f"**\\${surplus:,.2f}** surplus to the principal of your highest-APR debt, then return "
-            "to Step 5 and update the ledger."
+            f"You've got about **\\${surplus:,.2f}** in cash beyond your safety net, while also carrying "
+            f"**\\${toxic_balance:,.2f}** of high-interest debt. Look at the two rates side by side: that cash is "
+            "earning you maybe 4% in savings, while the debt is charging you double digits. Every month, the debt "
+            "wins that race.\n\n"
+            f"**The move that protects {_anchor.anchor_phrase()}:** send that extra **\\${surplus:,.2f}** straight at "
+            "your highest-rate debt. It's a guaranteed return equal to the interest rate you stop paying — no "
+            "investment offers that. Once it's applied, update the debt step and we'll continue."
         )
-        c2.button("Deploy Surplus to Proceed", disabled=True)
+        c2.button("Let's put that cash to work on the debt first", disabled=True)
         return
 
-    # Debt-free with a funded moat: push the idle surplus into the Wealth Engine.
-    st.warning("⚔️ **DIRECTIVE: DEPLOY IDLE SURPLUS INTO THE WEALTH ENGINE**")
+    # Debt-free with a funded cushion: put the idle surplus to work.
+    st.subheader("Let's not let good money sit idle.")
     st.markdown(
-        f"You are debt-free with a fully funded moat, but **\\${surplus:,.2f}** is sitting above your "
-        "target and decaying to inflation every month it stays in cash. Cash beyond your moat is not "
-        "safety — it is a slow, silent loss.\n\n"
-        f"**Your move:** Carry this **\\${surplus:,.2f}** into Step 9 and deploy it through the Capital "
-        "Allocation Waterfall alongside your monthly margin. Advance now."
+        f"You're debt-free with a fully funded safety net — genuinely, that's the hard part done. But you've got "
+        f"about **\\${surplus:,.2f}** in extra cash beyond the cushion, and cash slowly loses value to inflation "
+        "every year it just sits there. That surplus is ready for a bigger job.\n\n"
+        f"**Next up:** we'll put this **\\${surplus:,.2f}**, plus your monthly spare cash, to work building "
+        f"**{_anchor.anchor_phrase()}** — in the right order, with the tax-advantaged accounts first."
     )
-    c2.button("Next", on_click=next_step, type="primary")
+    c2.button("Let's start building →", on_click=next_step, type="primary")
