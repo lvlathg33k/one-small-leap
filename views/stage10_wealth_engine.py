@@ -2,78 +2,72 @@ import streamlit as st
 import pandas as pd
 import datetime
 import math
+from views import _anchor
 
 ANNUAL_RATE = 0.07
 MAX_TRAJECTORY_MONTHS = 1200  # 100-year cap keeps the chart bounded.
 
 
 def render(next_step, prev_step, reset, margin):
-    st.header("Step 9: The Wealth Engine")
-    st.caption(
-        "You survived the gauntlet: zero toxic debt, a fully funded moat, automated sinking funds. "
-        "Now deploy your unallocated margin into wealth generation — in the correct order, every time."
-    )
-
-    st.markdown("### The Capital Allocation Waterfall")
+    st.header("Now — the fun part: building the thing you came here for")
     st.markdown(
-        "Fill each tier to its statutory limit before deploying a single dollar to the next. "
-        "*This assumes you are already capturing your full 401(k) match from Step 2 — that is free "
-        "money and it comes before everything below.*"
+        "The cleanup is done: free money captured, safety net funded, toxic debt handled. From here, the tone "
+        "shifts from defense to offense. Below is the exact order to fill your buckets so that not a dollar of "
+        f"growth is wasted on taxes. Fill each one to its limit before moving to the next — that's the whole trick."
     )
+    st.caption("You're already grabbing your full 401(k) match from earlier — that's free money and it always comes first, before everything below.")
 
-    has_hsa = st.session_state.hdhp_status == "Yes, I have an HDHP"
+    has_hsa = st.session_state.hdhp_status == "Yes, I'm on an HDHP"
     tier = 1
 
     if has_hsa:
         st.markdown(
-            f"**{tier}. Health Savings Account (HSA) — 2025 limit: \\$4,300 self-only / \\$8,550 family "
-            "(+\\$1,000 catch-up at age 55+).** The only triple-tax-advantaged account there is. Invest "
-            "it in broad-market funds. Do NOT spend it on current medical bills — pay those in cash, "
-            "keep the receipts, and let this compound."
+            f"**{tier}. Your HSA — 2025 limit: \\$4,300 (self) / \\$8,550 (family), +\\$1,000 if you're 55+.** The only "
+            "triple-tax-free account there is. Invest it in a simple broad-market fund and, if you can, don't spend "
+            "it on today's medical bills — let it grow."
         )
         tier += 1
 
     st.markdown(
-        f"**{tier}. Roth IRA — 2025 limit: \\$7,000/yr (\\$8,000 if age 50+).** Tax-free growth, "
-        "tax-free withdrawals. Invest in low-cost, broad-market index funds."
+        f"**{tier}. Roth IRA — 2025 limit: \\$7,000/yr (\\$8,000 if you're 50+).** Grows and comes out completely "
+        "tax-free in retirement. Low-cost, broad-market index funds are all you need."
     )
     tier += 1
-
     st.markdown(
-        f"**{tier}. Max out your 401(k) — 2025 employee limit: \\$23,500/yr (\\$31,000 if age 50+).** "
-        "Return to your employer plan and fill it past the match all the way to the statutory cap."
+        f"**{tier}. Back to your 401(k) — 2025 limit: \\$23,500/yr (\\$31,000 if you're 50+).** Past the match now, "
+        "fill it the rest of the way to the cap."
     )
     tier += 1
-
     st.markdown(
-        f"**{tier}. Taxable Brokerage — no contribution limit.** Deploy every remaining dollar of margin "
-        "into low-cost, broad-market index ETFs. This is where surplus capital lives once the "
-        "sheltered tiers above are full."
+        f"**{tier}. Regular brokerage account — no limit.** Once the tax-advantaged buckets are full, everything "
+        "else goes here, in the same simple index funds. This is where real surplus lives."
     )
 
     st.info(
-        "**The Fiduciary Threshold.** Once you are maxing every tax-advantaged account above *every "
-        "year* and building a large, complex taxable estate, you have crossed the Fiduciary Threshold. "
-        "DIY optimization stops paying for itself here. Hand ongoing management to a **fee-only, "
-        "fiduciary RIA** — flat or hourly fee, never a percentage of assets and never commissions. "
-        "This is the one point where paying for advice is the mathematically correct move."
+        "**A quiet milestone worth naming.** Once you're maxing every account above *every year* and building a "
+        "sizable taxable account on top, you've reached what we'd call the Fiduciary Threshold. At that point, "
+        "doing it yourself stops adding much, and it's worth handing the ongoing work to a **fee-only, fiduciary "
+        "advisor** — flat or hourly fee, never a % of your assets, never commissions. That's the one time paying "
+        "for advice is the mathematically right call. It's a good problem to have — and it's on this path."
     )
 
     st.divider()
-    st.subheader("Goal Trajectory Modeling")
-    st.caption(
-        "Capital without a target is wasted motion. Name the objective and the number. We project the "
-        "timeline using your Guilt-Free Margin compounding at a conservative 7% annualized return."
+    st.subheader("Your timeline to what you actually came for")
+    st.markdown(
+        f"Let's make **{_anchor.anchor_phrase()}** concrete. Put a number on it, and we'll project how long it "
+        "takes using your spare cash and a realistic **7%** average yearly return — the kind index investors have "
+        "historically earned over the long run."
     )
 
     col1, col2 = st.columns(2)
     with col1:
+        default_goal = st.session_state.goal_name or _anchor.anchor_label()
         st.session_state.goal_name = st.text_input(
-            "Target Objective", value=st.session_state.goal_name, placeholder="e.g. 20% House Down Payment"
+            "What are you aiming at?", value=default_goal, placeholder="e.g. A house down payment, or $1M invested"
         )
     with col2:
         st.session_state.goal_target = st.number_input(
-            "Target Capital Required ($)", min_value=0.0, step=1000.0, value=st.session_state.goal_target
+            "How much will it take? ($)", min_value=0.0, step=1000.0, value=st.session_state.goal_target
         )
 
     goal_target = st.session_state.goal_target or 0.0
@@ -81,8 +75,8 @@ def render(next_step, prev_step, reset, margin):
 
     if margin <= 0:
         st.warning(
-            "Your Guilt-Free Margin is zero or negative, so there is nothing to deploy yet. Return to "
-            "the earlier stages and free up cash flow before modeling a trajectory."
+            "Right now there's no spare monthly cash to invest yet — and that's okay. Head back a few steps to "
+            "free some up, and this projection will light up the moment you do."
         )
     elif goal_target > 0 and goal_name:
         monthly_rate = ANNUAL_RATE / 12.0
@@ -103,8 +97,8 @@ def render(next_step, prev_step, reset, margin):
             time_str = f"{rem_months} mo"
 
         st.success(
-            f"🎯 **Trajectory locked.** Investing your **\\${margin:,.2f}** monthly margin at 7% reaches "
-            f"**\\${goal_target:,.2f}** for *{goal_name}* in **{time_str}**."
+            f"🎯 **Here's your path.** Putting your **\\${margin:,.2f}/mo** to work at 7% gets you to "
+            f"**\\${goal_target:,.2f}** for *{goal_name}* in about **{time_str}**. Not someday — a real date you can plan around."
         )
 
         # Ordinary-annuity accumulation (contribution at period end) so the
@@ -121,10 +115,11 @@ def render(next_step, prev_step, reset, margin):
             })
 
         st.line_chart(pd.DataFrame(timeline_data).set_index("Date"))
+        st.caption("Automate the monthly transfer and this basically runs itself. That's the whole point: a clear, automatic, mathematically sound path — so you can stop worrying and go live your life.")
     else:
-        st.caption("Enter a target objective and a dollar amount above to model your compounding timeline.")
+        st.caption("Name your goal and put a number on it above, and I'll map the exact timeline for you.")
 
     st.divider()
     c1, c2 = st.columns([1, 5])
     c1.button("Back", on_click=prev_step)
-    c2.button("🔄 Restart Audit", on_click=reset)
+    c2.button("🔄 Start over", on_click=reset)
